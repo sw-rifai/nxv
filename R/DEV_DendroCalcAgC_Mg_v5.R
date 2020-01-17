@@ -142,7 +142,7 @@ dendro_calc_agC_Mg_dev <- function(census, mod_height, dendrometer, plot_code,
   
   
   ################################################################################################
-  # --- begin new shit --- THIS PART IS CRUCIAL FOR CATCHING THE ERRORS AND NEW DBANDS
+  # --- begin new stff --- THIS PART IS CRUCIAL FOR CATCHING THE ERRORS AND NEW DBANDS
   ################################################################################################
   dend$baseline_dbh <- dend$dbh
   dend <- dend %>% mutate(dendrometer_reading_mm = 
