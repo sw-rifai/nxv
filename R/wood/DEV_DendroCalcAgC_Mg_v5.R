@@ -436,9 +436,9 @@ dendro_calc_agC_Mg_dev <- function(census, mod_height, dendrometer, plot_code,
     
 
     tmp_fit_lm <- gam(nppacw_Mg_tree_day~ height_pred+dbh*wd+I(dbh**2),
-                      data=tmp_dat, weights = wu_weights)
+                      data=tmp_dat, weights = wu_weights, method='REML')
     tmp_fit_lm2 <- gam(nppacw_Mg_tree_day~ height_pred+dbh+wd,
-                       data=tmp_dat, weights = wu_weights)
+                       data=tmp_dat, weights = wu_weights, method='REML')
     
     growth_lm_mgc <- predict(tmp_fit_lm, type = "response",
                              newdata = census_max_basal_area) %>% sum()
@@ -448,12 +448,12 @@ dendro_calc_agC_Mg_dev <- function(census, mod_height, dendrometer, plot_code,
     tmp_fit_gam1 <- gam(nppacw_Mg_tree_day~ti(wd,dbh, k=3)+s(height_pred,k=2),
                         data=tmp_dat,
                         select = T,
-                        method="ML", weights = wu_weights)
+                        method='REML', weights = wu_weights)
     
     tmp_fit_gam4 <- gam(nppacw_Mg_tree_day~wd+s(dbh)+s(height_pred),
                         data=tmp_dat,
-                        select = T,
-                        method="ML", weights = wu_weights)
+                        select = T, method='REML', 
+                        weights = wu_weights)
     
     vec_mod_r2 <- c(summary(tmp_fit_lm)$r.sq, 
                     summary(tmp_fit_lm2)$r.sq, 
@@ -586,8 +586,6 @@ dendro_calc_agC_Mg_dev <- function(census, mod_height, dendrometer, plot_code,
   )
   
 }
-
-
 
 
 

@@ -1,3 +1,51 @@
+census_all %>% 
+  # mutate(d0 = if_else(census_date==2017.001 & plot_code=='NXV-01', 
+  #                     d0*0.1, d0)) %>% 
+  filter(d0<13000) %>%
+  filter(is.na(d0)==F) %>%
+  group_by(plot_code, census_date) %>% 
+  summarize(nobs = n(), 
+            ba_m2 = sum(3.14*(d0/2)**2)/(1000**2)) %>% 
+  ungroup() %>% 
+  arrange(plot_code) %>% 
+  ggplot(data=., aes(census_date, ba_m2, color=plot_code))+
+  geom_point()
+
+census_all %>% 
+  filter(plot_code=='NXV-01') %>%
+  filter(d0>0) %>% 
+  ggplot(data=., aes(census_date, d0, group=as.factor(treeid)))+
+  geom_point()+
+  geom_line()+
+  geom_smooth(method='lm', inherit.aes = F, aes(census_date, d0))
+
+census_all %>% 
+  filter(d0==13000) %>% pull(tree_tag)
+
+census_all %>% 
+  filter(tree_tag %in% c('49','50')) %>% 
+  select(plot_code, tree_tag, census_date, d0) %>% 
+  arrange(plot_code, census_date)
+
+
+census_all %>% 
+  filter(plot_code=='NXV-02') %>%
+  mutate(d0 = if_else(census_date==2017.001 & plot_code=='NXV-02',
+                      d0*0.001, d0)) %>%
+  # filter(d0>0) %>% 
+  ggplot(data=., aes(census_date, d0, group=as.factor(treeid)))+
+  geom_point()+
+  geom_line()+
+  geom_smooth(method='lm', inherit.aes = F, aes(census_date, d0))
+
+census_all %>% filter(near(census_date,2017.001,tol = 0.01) & plot_code=='NXV-02') %>% 
+  pull(d0) %>% max(na.rm=T)
+census_all %>% filter(near(census_date,2017.001,tol = 0.01) & plot_code=='NXV-02') %>% 
+  pull(d0) %>% summary
+
+census_all %>% filter(plot_code=='NXV-02') %>% pull(census_date) %>% unique
+census_all %>% filter(census_date >= 2017.001)
+
 census_all$`Plot Code` %>% unique
 
 census_all %>% filter(`Plot Code`=="CAX-01") %>% pull(D4)

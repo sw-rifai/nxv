@@ -4,42 +4,23 @@
 #--- NOTES ----------------------------------------------------------------------------------#
 # ! EACH PLOT REQUIRES EXTENSIVE CHECKING TO ENSURE THE CALCULATIONS ARE WORKING CORRECTLY ! #
 #DO:                                                                          CorrectUnits?
-# "ANK-01" "ANK-02" "ANK-03"                                                          ?
-# BZ* --- not in forestplots                                                          ?
-# "BOB-01" "BOB-02" "BOB-03" "BOB-04" "BOB-05" "BOB-06"-------------------------------F
-# "CAX-04" [SEPERATE SCRIPT]                                                          ?
-# "KAK" [SEPARATE SCRIPT]
-# "KEN-01" "KEN-02"                                                                   F
-# "KOG-02" "KOG-03" "KOG-04" "KOG-05" "KOG-06"----------------------------------------F
-# "JEN-11" "JEN-12"
-# "LPG-01" "LPG-02"                                                                   T
-# "MLA-01" "MLA-02"                                                                   T
-# "MNG-03" "MNG-04"                                                                   T
-# "SAF-01" "SAF-02" "SAF-03" "SAF-04" "SAF-05"                                        T
-# "Santarém" --- not in forestplots, not in dendro file, Cécile is formatting it ----------?
-#    "SPD-01" "SPD-02" "STB-08" "STB-12" "STD-05" "STD-10"
-#    "STD-11" "STJ-01" "STJ-04" "STJ-05" "STL-09" "STL-10" "STN-02" "STN-03" "STN-04" "STN-06"
-#    "STN-09" "STO-03" "STO-06" "STO-07" "STQ-08" "STQ-11"
-# "TAM-05 [problem]" "TAM-06" "TAM-09"                                                          T
-# check TAM census records with smb://ouce-file3.ouce.ox.ac.uk/elds/GEM_cycles_raw_data/Peru%20data%20from%202015-2017/BIG%20TREE%20RECENSUS%20DATA/CENSUS%202017
 # "NXV-01" "NXV-02"                                                                   T
-# "YAY-03" "YAY-07" "YAY-17" "YAY-40" "YAY-55"
 #--- END NOTES ------------------------------------------------------------------------------#
 
 # rm(list=ls()) #--- CLEAR THE ENVIRONMENT (?)---
 
 try(dev.off(),silent=T);
 library(tidyverse); library(lubridate)
-source("R/DendroFunctions.R"); 
-source("R/DEV_DendroCalcAgC_Mg_v5.R") # DEVELOPMENT VERSION
+source("R/wood/DendroFunctions.R"); 
+source("R/wood/DEV_DendroCalcAgC_Mg_v5.R") # DEVELOPMENT VERSION
 
 # LOAD DATA ---------------------------------------------------------------------------------#
-dend_all <- read_csv("data/dend_nxv.csv", na=c("NA", "NaN", ""), guess_max = 100000)
-census_all  <- read_csv("data/census_nxv.csv", na=c("NA", "NaN", ""), guess_max = 100000) # Census_Santarem_2014_2016.csv
+dend_all <- read_csv("data/wood/dend_nxv.csv", na=c("NA", "NaN", ""), guess_max = 100000)
+census_all  <- read_csv("data/wood/census_nxv.csv", na=c("NA", "NaN", ""), guess_max = 100000) # Census_Santarem_2014_2016.csv
 names(census_all) <- tolower(names(census_all))
 names(census_all) <- gsub(pattern=" ",replacement="_",names(census_all))
 census_all <- census_all %>% rename(tree_tag = tag_number) %>% mutate(tree_tag = as.character(tree_tag))
-zanne <- read_csv("data/GlobalWoodDensityDatabase.csv")
+zanne <- read_csv("data/wood/GlobalWoodDensityDatabase.csv")
 glimpse(census_all) 
 # END LOAD DATA -----------------------------------------------------------------------------#
 
