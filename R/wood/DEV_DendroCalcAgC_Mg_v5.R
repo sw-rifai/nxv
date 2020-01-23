@@ -19,7 +19,10 @@
 # It's likely there are mistakes so use with caution!!! 
 # STILL PROBLEMS WITH UPDATING BASELINE DBH AND CURRENT DBH !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-dendro_calc_agC_Mg_dev <- function(census, mod_height, dendrometer, plot_code, 
+dendro_calc_agC_Mg_dev <- function(census, 
+                                   mod_height, 
+                                   dendrometer, 
+                                   plot_code, 
                                    allometric_option="Default",
                                    ret="nppacw.perday.pertree", 
                                    census_year, 
@@ -178,7 +181,7 @@ dendro_calc_agC_Mg_dev <- function(census, mod_height, dendrometer, plot_code,
   dend$height_pred <- predict(mod_height, newdata=dend, type="response")
   rm(pass1, pass2)
   ################################################################################################
-  # --- END FCKNG GOLD!!!
+  # --- END ERROR CHECK!!!
   ################################################################################################
   
   #--- Unusually Large DBH-increment check ---------------------------------------------------#

@@ -26,8 +26,8 @@ glimpse(census_all)
 
 # USER OPTIONS ------------------------------------------------------------------------------#
 # - Allometric options: [2-Chave2005,dry eqI.3][3-Chave2005,moist eqI.6][4-Chave2014,wet-eq4]
-# - Height correctionn options: 
-this_plot_code           = "NXV-01"
+# - Height correction options: 
+this_plot_code           = "NXV-02"
 allometric_option        = "5" 
 height_correction_option = "Default"
 are_dend_units_correct   = F
@@ -318,51 +318,18 @@ dend_out <- dendro_calc_agC_Mg_dev(census = census,
 f_out_path <- paste0("outputs/stem_npp_month/stem_npp_",this_plot_code,"_",Sys.Date(),".csv")
 write_csv(dend_out, path = f_out_path)
 
-dend_out %>% #filter(date>="2012-01-01" & date<="2014-06-01") %>% 
-  ggplot(data=., aes(date, npp_wu_agC_month))+geom_line(color="orange")+geom_point()+
-  geom_point(aes(date, npp_u_agC_month), lwd=3)+
-  geom_line(aes(date, npp_hybrid_bestMod_agC_month), col="blue", lwd=2)+
-  geom_line(aes(date, npp_bestEst_agC_month), col="purple", lwd=2, alpha=0.9)+
-  geom_line(aes(date, npp_hybrid_gam_agC_month), col="darkgreen")+
-  geom_line(aes(date, npp_lm_agC_month), col="red")+
-  geom_point(aes(date,dev),col="red",alpha=0.7)+
+
+# diagnostic plot
+dend_out %>% 
+  ggplot(data=., aes(date, npp_u_agC_month))+
+  geom_line(color="black")+
+  geom_point()+ # raw mean
+  geom_point(aes(date, npp_wu_agC_month), lwd=3, col='orange')+ # weighted mean
+  geom_line(aes(date, npp_hybrid_bestMod_agC_month), col="blue", lwd=2)+ # hybrid
+  geom_line(aes(date, npp_bestEst_agC_month), col="purple", lwd=2, alpha=0.9)+ # best estimate
+  geom_line(aes(date, npp_hybrid_gam_agC_month), col="darkgreen")+ # hybrid with GAM
+  geom_line(aes(date, npp_lm_agC_month), col="red")+ # don't use , linear model 
+  # geom_point(aes(date,dev),col="red",alpha=0.7)+ # deviance explained
   geom_abline(aes(intercept=0,slope=0),lwd=0.5,alpha=0.5)+
   geom_abline(aes(intercept=0.2,slope=0),lwd=0.5,alpha=0.2)
-
-dend_out %>% filter(date>="2012-01-01" & date<="2014-06-01") %>% pull(which_bestEst)
-dend_out %>% filter(date>="2012-01-01" & date<="2014-06-01") %>% pull(medtree_ratio)
-dend_out %>% filter(date>="2012-01-01" & date<="2014-06-01") %>% pull(nobs.x)
-
-dend_out %>% 
-  select(which_bestEst, medtree_ratio, nobs.x)
-census$dbh %>% median
-census %>% filter(tree_tag %in% unique(dendrometer$tree_tag)) %>% pull(dbh) %>% median()
-
-# dend_out %>% filter(date>="2016-01-01") %>% select(date, npp_u_agC_month, npp_hybrid_bestMod_agC_month, npp_bestEst_agC_month, dev)
-
-#--- PLOTTING -------------------------------------------------------------------------------------
-# dendrometer %>% arrange(date) %>% group_by(tree_tag) %>% 
-#   ggplot(data=., aes(date, dendrometer_reading_mm, color=tree_tag)) +
-#   geom_path() + geom_point()+
-#   theme(legend.position = "none")
-
-# dend_out %>% 
-#   ggplot(data=., aes(date, npp_u_agC_month))+geom_path(lwd=1.5)+
-#   geom_path(aes(date, npp_hybrid_gam_agC_month), col="darkgreen")+
-#   geom_path(aes(date, npp_hybrid_bestMod_agC_month),col="blue")+
-#   geom_path(aes(date, npp_lm_agC_month),col="red")+ 
-#   geom_path(aes(date, npp_gam_agC_month), col="orange")+
-#     geom_line(aes(date, npp_bestEst_agC_month), col="purple")+
-#   geom_abline(aes(intercept=0,slope=0),col="grey", lwd=2)
-# 
-# dend_out$npp_u_agC_month %>% sum
-# dend_out$npp_hybrid_bestMod_agC_month %>% sum
-# dend_out$npp_hybrid_gam_agC_month %>% sum
-# dend_out$npp_gam_agC_month %>% sum
-
-# plot(dend_out$npp_hybrid_gam_agC_month~dend_out$npp_lm_agC_month); abline(0,1,col="red")
-
-#--- WRITE OUTPUT TO FILE -------------------------------------------------------------------------
-# write_csv(dend_out, path=paste0("outputs/NPP_agC_Mg_month_",plot_code,"_",census_year,"_",max(dend_out$date),
-#                                 "_proc",Sys.Date(),".csv"))
 

@@ -24,6 +24,16 @@ nxv_cens <- nxv_cens %>%
   distinct() %>% 
   mutate(d0 = if_else(d0>=13000, d0*0.1, d0))
 
+nxv_cens <- nxv_cens %>% 
+  filter(str_detect(species, 'Morto')==F) %>%  # Filter out dead trees
+  filter(d0 != 0) %>% # filter out dead trees
+  # filter(is.na(genus)==T) %>% 
+  ungroup() %>% 
+  rowwise() %>% 
+  mutate(genus = if_else(is.na(genus)==T, 
+                        str_split(species, pattern = " ",simplify = T)[1], 
+                        genus)) %>% 
+  ungroup() 
 
 vec_nxv1_subplots <- nxv_cens %>% filter(plot_code=='NXV-01') %>% 
   filter(census_date==min(census_date)) %>% 
@@ -113,17 +123,122 @@ nxv1_npp <- nxv1_biomass %>%
 # Estimate SEM of NXV-01 NPP ----------------------------------------------
 nxv1_sem <- nxv1_npp %>% 
   filter(is.na(npp_Mg_ha_yr)==F) %>% 
-  summarize(npp_sd = sd(npp_Mg_ha_yr), 
+  summarize(npp_u = mean(npp_Mg_ha_yr),
+            npp_sd = sd(npp_Mg_ha_yr), 
             nobs = n(), 
             npp_sem = npp_sd/sqrt(nobs))
-
-
 
 nxv1_npp %>% 
   ggplot(data=., aes(census_date, npp_Mg_ha_yr))+
   geom_point()+
   geom_line()+
+  labs(y='NPP Mg Biomass ha-1 yr-1')+
   scale_y_continuous(limits = c(0, 5))
+
+
+
+
+
+
+
+
+
+
+
+# NXV-02 ------------------------------------------------------------------
+# live trees only 
+nxv2_cens <- nxv_cens %>% 
+  filter(plot_code=='NXV-02') %>% 
+  filter(d0 < 1300) %>% 
+  filter(d0>=100)
+
+
+## Extrapolate Wood Density ***********************************************
+# Get wood wd from Zanne global wood wd database
+nxv2_cens$wd <- NA
+nxv2_cens_sp_list <- nxv2_cens %>% distinct(family, genus, species, continent, tree_tag)
+
+# recast nxv2_cens species list
+
+nxv2_cens_sp_list <- nxv2_cens %>% 
+  distinct(family, genus, species, continent)
+nxv2_cens_sp_list$wd <- NA
+nxv2_cens_sp_list <- find_wd(census_sp_list = nxv2_cens_sp_list)
+nxv2_cens_sp_list <- nxv2_cens_sp_list %>% mutate(species=paste(genus,species))
+
+nxv2_cens <- nxv2_cens %>% select(-wd)
+nxv2_cens_sp_list <- nxv2_cens_sp_list %>% 
+  select(species, wd) %>% 
+  group_by(species) %>% 
+  summarize(wd=mean(wd,na.rm=T)) %>% 
+  ungroup()
+nxv2_cens <- left_join(nxv2_cens,nxv2_cens_sp_list, by="species")
+
+# Extrapolate height *******************************************************
+log_fit <- lm(height~log(d0), data=nxv2_cens %>% filter(is.na(wd)==F));
+lm_fit <- lm(height~d0, data=nxv2_cens %>% filter(is.na(wd)==F))
+nl_fit <- nls(height~ b0*((1/wd)^b1)*d0^b2, data=nxv2_cens %>% filter(is.na(wd)==F),
+              start = list(b0=2.643, b1=-0.3, b2=0.5))
+mod_list <- list(log_fit, lm_fit, nl_fit)
+best_mod <- AIC(log_fit, lm_fit, nl_fit)[,2] %>% which.min()
+best_mod <- mod_list[[best_mod]]
+nxv2_cens <- nxv2_cens %>% 
+  mutate(pred_height = predict(best_mod, newdata=.)) %>% 
+  mutate(height = if_else(is.na(height)==T, pred_height, height)) 
+
+
+# Estimate Biomass ********************************************************
+nxv2_biomass <- nxv2_cens %>% 
+  filter(is.na(d0)==F) %>% 
+  # filter(sub_plot_t1 %in% vec_nxv2_subplots) %>% # first 50 subplots [total is 0.5 ha]
+  mutate(biomass = Chave2014_eq4(diam_cm = d0/10, density=wd, height_m = height, wd=wd)) %>% 
+  group_by(plot_code, census_date) %>% 
+  summarize(tot_biomass_Mg_ha = (sum(biomass))/1000) %>% # multiplied by 2 because plot is 0.5 ha
+  ungroup()
+nxv2_cens %>% group_by(census_date) %>% summarize(nobs = n()) %>% 
+  ggplot(data=.,aes(census_date, nobs))+geom_line()+geom_point()
+nxv2_biomass %>% 
+  ggplot(data=., aes(census_date, tot_biomass_Mg_ha,color=plot_code))+
+  geom_point()+
+  geom_line()
+
+
+# Estimate NXV-02 NPP -----------------------------------------------------
+nxv2_npp <- nxv2_biomass %>% 
+  arrange(census_date) %>% 
+  mutate(year_diff = census_date - lag(census_date, n=1, order_by = census_date), 
+         biomass_diff = tot_biomass_Mg_ha - lag(tot_biomass_Mg_ha, n = 1, order_by = census_date)) %>% 
+  mutate(npp_Mg_ha_yr = biomass_diff/year_diff)
+
+
+# Estimate SEM of NXV-02 NPP ----------------------------------------------
+nxv2_sem <- nxv2_npp %>% 
+  filter(is.na(npp_Mg_ha_yr)==F) %>% 
+  summarize(npp_u = mean(npp_Mg_ha_yr),
+            npp_sd = sd(npp_Mg_ha_yr), 
+            nobs = n(), 
+            npp_sem = npp_sd/sqrt(nobs)); 
+nxv2_sem
+
+nxv2_npp %>% 
+  ggplot(data=., aes(census_date, npp_Mg_ha_yr))+
+  geom_point()+
+  geom_line()+
+  labs(y='NPP Mg Biomass ha-1 yr-1')+
+  scale_y_continuous(limits = c(0, 5))
+
+
+
+
+
+
+
+
+
+
+
+# Scratch -----------------------------------------------------------------
+
   
 # NXV-01 Dead trees ------------------------------------------------------
 nxv_cens %>%

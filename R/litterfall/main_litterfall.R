@@ -16,7 +16,14 @@ dat_nxv <- lf_o %>% filter(site=='NXV') %>%
                     date %in% as.POSIXct(c("2013-07-15","2013-07-02","2013-02-01"),tz='UTC'), 
                   leavesflf_MgC_ha_day*0.1, leavesflf_MgC_ha_day))
 
-rgamma(c(100,100), shape=runif(100, 0,3), rate=runif(100, 0,3))
+
+vec <- rgamma(10000, shape = 3, rate = 2)
+hist(vec)
+glm(vec~1, family=Gamma(link='log')) %>% summary
+1/0.338
+o <- rstanarm::stan_glm(vec~1, family=Gamma(link='log'),algorithm='meanfield')
+summary(o, probs = c(0.1,0.5,0.9))
+
 
 dat_nxv %>% 
   group_by(plot_code, date) %>% 
