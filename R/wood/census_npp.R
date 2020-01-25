@@ -61,7 +61,7 @@ nxv_cens %>%
 # live trees only 
 nxv1_cens <- nxv_cens %>% 
   filter(plot_code=='NXV-01') %>% 
-  filter(d0 < 1300) %>% 
+  filter(d0 < 1300) %>% # Was there really a tree with 1.3 m in diameter at NXV-01? I am counting this as an outlier
   filter(d0>=100)
 
 
@@ -123,10 +123,14 @@ nxv1_npp <- nxv1_biomass %>%
 # Estimate SEM of NXV-01 NPP ----------------------------------------------
 nxv1_sem <- nxv1_npp %>% 
   filter(is.na(npp_Mg_ha_yr)==F) %>% 
+  group_by(plot_code) %>% 
   summarize(npp_u = mean(npp_Mg_ha_yr),
             npp_sd = sd(npp_Mg_ha_yr), 
             nobs = n(), 
             npp_sem = npp_sd/sqrt(nobs))
+nxv1_sem %>% 
+  kable()
+
 
 nxv1_npp %>% 
   ggplot(data=., aes(census_date, npp_Mg_ha_yr))+
@@ -214,6 +218,7 @@ nxv2_npp <- nxv2_biomass %>%
 # Estimate SEM of NXV-02 NPP ----------------------------------------------
 nxv2_sem <- nxv2_npp %>% 
   filter(is.na(npp_Mg_ha_yr)==F) %>% 
+  group_by(plot_code) %>% 
   summarize(npp_u = mean(npp_Mg_ha_yr),
             npp_sd = sd(npp_Mg_ha_yr), 
             nobs = n(), 
@@ -229,6 +234,9 @@ nxv2_npp %>%
 
 
 
+# Print table of Census Woody NPP -----------------------------------------
+bind_rows(nxv1_sem, nxv2_sem) %>% 
+  kable()
 
 
 
@@ -237,129 +245,130 @@ nxv2_npp %>%
 
 
 
-# Scratch -----------------------------------------------------------------
 
-  
-# NXV-01 Dead trees ------------------------------------------------------
-nxv_cens %>%
-  filter(plot_code=='NXV-01') %>% 
-  filter(is.na(d0)==F) %>% 
-  filter(sub_plot_t1 %in% vec_nxv1_subplots) %>% # first 50 subplots [total is 0.5 ha]
-  filter(d1 ==0) %>% # means tree is dead according to forest plots manual 
-  group_by(census_date) %>% 
-  summarize(n_dead = sum(d1 == 0)) %>% 
-  ungroup() %>% 
-  ggplot(data=., aes(census_date, n_dead))+
-  geom_point()
-  # mutate(biomass = Chave2014_eq4(diam_cm = d0/10, density=wd, height_m = height, wd=wd)) %>% 
-  # group_by(plot_code, census_date) %>% 
-  # summarize(tot_biomass_Mg_ha = (sum(biomass)*2)/1000) %>% # multiplied by 2 because plot is 0.5 ha
-  # ungroup()
-
-
-
-# Plot basal area  ********************************************************
-nxv1_cens %>% 
-  filter(is.na(d0)==F) %>% 
-  filter(sub_plot_t1 %in% vec_nxv1_subplots) %>% 
-  # select(plot_code, census_date, d0, tag) %>% 
-  # distinct() %>% 
-  group_by(plot_code, census_date) %>% 
-  summarize(basal_area_m2 = sum(3.141593*(d0/2)**2)/(1000**2)) %>% 
-  ungroup() %>% 
-  ggplot(data=., aes(census_date, basal_area_m2,color=plot_code))+
-  geom_point()+
-  geom_line()
-
-
-
-# are the dendrometer bands in the plot? 
-dend_all %>% 
-  filter(plot_code=='NXV-01') %>% 
-  pull(tree_tag) %>% unique %in% 
-  unique(nxv1_cens$tree_tag)
-
-
-nxv_cens %>% 
-  filter(is.na(d0)==F) %>% 
-  filter(sub_plot_t1 %in% vec_nxv1_subplots) %>% 
-  # select(plot_code, census_date, d0, tag) %>% 
-  # distinct() %>% 
-  group_by(plot_code, census_date) %>% 
-  summarize(basal_area_m2 = sum(3.141593*(d0/2)**2)/(1000**2)) %>% 
-  ungroup() %>% 
-  ggplot(data=., aes(census_date, basal_area_m2,color=plot_code))+
-  geom_point()+
-  geom_line()
-
-
-
-# number of unique species per census date
-nxv1_cens %>% 
-  group_by(census_date) %>% 
-  summarize(n_spp = length(unique(species))) %>% 
-  ungroup() %>% 
-  ggplot(data=., aes(census_date, n_spp))+
-  geom_point()
-
-
-
-curve(Chave2014_eq4(x, 0.65, height_m = 10, wd = 0.65), 0, 10)
-
-# plot basal area
-nxv_cens %>% 
-  filter(is.na(d0)==F) %>% 
-  filter(sub_plot_t1 %in% vec_nxv1_subplots) %>% 
-  # select(plot_code, census_date, d0, tag) %>% 
-  # distinct() %>% 
-  group_by(plot_code, census_date) %>% 
-  summarize(basal_area_m2 = sum(3.141593*(d0/2)**2)/(1000**2)) %>% 
-  ungroup() %>% 
-  ggplot(data=., aes(census_date, basal_area_m2,color=plot_code))+
-  geom_point()+
-  geom_line()
-
-
-nxv_cens %>% 
-  select(d0,d1,d2,d3,d4) %>% arrange(desc(d0))
-  
-nxv_cens %>% 
-  group_by(plot_code) %>% 
-  select(tag) %>% 
-  distinct()
-
-
-nxv_cens$d0 %>% max(na.rm=T)
-
-
-nxv_cens %>% 
-  filter(is.na(d0)==F) %>% 
-  filter(d0 > 0) %>% 
-  mutate(d0 = if_else(d0>=13000, d0*0.1, d0)) %>% 
-  group_by(plot_code, census_date) %>% 
-  summarize(val = min(d0, na.rm=T), 
-            nobs =n())
-
-
-# plot number of observations (live trees)
-nxv_cens %>% 
-  mutate(d0 = if_else(d0>=13000, d0*0.1, d0)) %>% 
-  filter(is.na(d0)==F) %>% 
-  filter(d0 > 0) %>% 
-  select(plot_code, census_date, d0, treeid) %>% 
-  distinct() %>% 
-  group_by(plot_code, census_date) %>% 
-  summarize(nobs = n()) %>% 
-  ungroup() %>% 
-  ggplot(data=., aes(census_date, nobs,color=plot_code))+
-  geom_point()+
-  geom_line()
-
-nxv_cens %>% 
-  select(plot_code, d0, d1, d2, d3, d4) %>% 
-  apply(., 2, FUN=function(x) sum(is.na(x)))
-
-nxv_cens %>% filter(is.na(d0)==T) %>% 
-  select(plot_code, d0, d1, d2, d3, d4) %>% 
-apply(., 2, FUN=function(x) sum(is.na(x)))
-
+# # Scratch -----------------------------------------------------------------
+# 
+#   
+# # NXV-01 Dead trees ------------------------------------------------------
+# nxv_cens %>%
+#   filter(plot_code=='NXV-01') %>% 
+#   filter(is.na(d0)==F) %>% 
+#   filter(sub_plot_t1 %in% vec_nxv1_subplots) %>% # first 50 subplots [total is 0.5 ha]
+#   filter(d1 ==0) %>% # means tree is dead according to forest plots manual 
+#   group_by(census_date) %>% 
+#   summarize(n_dead = sum(d1 == 0)) %>% 
+#   ungroup() %>% 
+#   ggplot(data=., aes(census_date, n_dead))+
+#   geom_point()
+#   # mutate(biomass = Chave2014_eq4(diam_cm = d0/10, density=wd, height_m = height, wd=wd)) %>% 
+#   # group_by(plot_code, census_date) %>% 
+#   # summarize(tot_biomass_Mg_ha = (sum(biomass)*2)/1000) %>% # multiplied by 2 because plot is 0.5 ha
+#   # ungroup()
+# 
+# 
+# 
+# # Plot basal area  ********************************************************
+# nxv1_cens %>% 
+#   filter(is.na(d0)==F) %>% 
+#   filter(sub_plot_t1 %in% vec_nxv1_subplots) %>% 
+#   # select(plot_code, census_date, d0, tag) %>% 
+#   # distinct() %>% 
+#   group_by(plot_code, census_date) %>% 
+#   summarize(basal_area_m2 = sum(3.141593*(d0/2)**2)/(1000**2)) %>% 
+#   ungroup() %>% 
+#   ggplot(data=., aes(census_date, basal_area_m2,color=plot_code))+
+#   geom_point()+
+#   geom_line()
+# 
+# 
+# 
+# # are the dendrometer bands in the plot? 
+# dend_all %>% 
+#   filter(plot_code=='NXV-01') %>% 
+#   pull(tree_tag) %>% unique %in% 
+#   unique(nxv1_cens$tree_tag)
+# 
+# 
+# nxv_cens %>% 
+#   filter(is.na(d0)==F) %>% 
+#   filter(sub_plot_t1 %in% vec_nxv1_subplots) %>% 
+#   # select(plot_code, census_date, d0, tag) %>% 
+#   # distinct() %>% 
+#   group_by(plot_code, census_date) %>% 
+#   summarize(basal_area_m2 = sum(3.141593*(d0/2)**2)/(1000**2)) %>% 
+#   ungroup() %>% 
+#   ggplot(data=., aes(census_date, basal_area_m2,color=plot_code))+
+#   geom_point()+
+#   geom_line()
+# 
+# 
+# 
+# # number of unique species per census date
+# nxv1_cens %>% 
+#   group_by(census_date) %>% 
+#   summarize(n_spp = length(unique(species))) %>% 
+#   ungroup() %>% 
+#   ggplot(data=., aes(census_date, n_spp))+
+#   geom_point()
+# 
+# 
+# 
+# curve(Chave2014_eq4(x, 0.65, height_m = 10, wd = 0.65), 0, 10)
+# 
+# # plot basal area
+# nxv_cens %>% 
+#   filter(is.na(d0)==F) %>% 
+#   filter(sub_plot_t1 %in% vec_nxv1_subplots) %>% 
+#   # select(plot_code, census_date, d0, tag) %>% 
+#   # distinct() %>% 
+#   group_by(plot_code, census_date) %>% 
+#   summarize(basal_area_m2 = sum(3.141593*(d0/2)**2)/(1000**2)) %>% 
+#   ungroup() %>% 
+#   ggplot(data=., aes(census_date, basal_area_m2,color=plot_code))+
+#   geom_point()+
+#   geom_line()
+# 
+# 
+# nxv_cens %>% 
+#   select(d0,d1,d2,d3,d4) %>% arrange(desc(d0))
+#   
+# nxv_cens %>% 
+#   group_by(plot_code) %>% 
+#   select(tag) %>% 
+#   distinct()
+# 
+# 
+# nxv_cens$d0 %>% max(na.rm=T)
+# 
+# 
+# nxv_cens %>% 
+#   filter(is.na(d0)==F) %>% 
+#   filter(d0 > 0) %>% 
+#   mutate(d0 = if_else(d0>=13000, d0*0.1, d0)) %>% 
+#   group_by(plot_code, census_date) %>% 
+#   summarize(val = min(d0, na.rm=T), 
+#             nobs =n())
+# 
+# 
+# # plot number of observations (live trees)
+# nxv_cens %>% 
+#   mutate(d0 = if_else(d0>=13000, d0*0.1, d0)) %>% 
+#   filter(is.na(d0)==F) %>% 
+#   filter(d0 > 0) %>% 
+#   select(plot_code, census_date, d0, treeid) %>% 
+#   distinct() %>% 
+#   group_by(plot_code, census_date) %>% 
+#   summarize(nobs = n()) %>% 
+#   ungroup() %>% 
+#   ggplot(data=., aes(census_date, nobs,color=plot_code))+
+#   geom_point()+
+#   geom_line()
+# 
+# nxv_cens %>% 
+#   select(plot_code, d0, d1, d2, d3, d4) %>% 
+#   apply(., 2, FUN=function(x) sum(is.na(x)))
+# 
+# nxv_cens %>% filter(is.na(d0)==T) %>% 
+#   select(plot_code, d0, d1, d2, d3, d4) %>% 
+# apply(., 2, FUN=function(x) sum(is.na(x)))
+# 

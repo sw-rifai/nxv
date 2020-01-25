@@ -1,5 +1,18 @@
-library(fitdistrplus); library(tidyverse)
+library(fitdistrplus); library(tidyverse); library(knitr)
 nxv_root <- read_csv("data/fine_roots/nxv_root.csv")
+
+
+# Both plots, arithmetic quadrature approach ------------------------------
+# very little data to estimate SE!!!
+nxv_root %>% 
+  filter(root <= 0.6) %>% 
+  group_by(plot_code) %>% 
+  summarize(nobs = n(), 
+            root_u = mean(root)*12, # 12*monthly -> annual
+            root_sd = sqrt(sum(monthlyNPProot_sd**2))*12) %>% 
+  ungroup() %>% 
+  mutate(root_sem = root_sd/sqrt(16*2)) %>%  # dividing by sqrt of 16*2 because there were essentially 2 years of observations with 16 ingrowth cores
+  kable()
 
 # NXV-01 ------------------------------------------------------------------
 vec_nxv1_root <- nxv_root %>% 
@@ -92,6 +105,14 @@ quantile(f1,probs = c(0.5))
 
 
 
+
+tibble(plot_code = c("NXV-01", "NXV-02"), 
+       median_est = c(as.numeric(f1$quantiles), 
+                      as.numeric(f2$quantiles)), 
+       CI_2.5 = c(o1$quantCI$`p=0.5`[1] ,o2$quantCI$`p=0.5`[1] ), 
+       CI_97.5 = c(o1$quantCI$`p=0.5`[2] ,o2$quantCI$`p=0.5`[2] )
+) %>% 
+  kable()
 
 
 

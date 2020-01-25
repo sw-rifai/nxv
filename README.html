@@ -367,44 +367,211 @@ summary {
 
 <div id="scaling-npp-from-nova-xavantina" class="section level1">
 <h1>Scaling NPP from Nova Xavantina</h1>
-<div id="scaling-dendrometer-band-woody-npp" class="section level2">
-<h2>Scaling dendrometer band woody NPP</h2>
-</div>
 <div id="uncertainty-propagation" class="section level2">
 <h2>Uncertainty propagation</h2>
-<ul>
-<li>Arithmetic approach:</li>
-</ul>
+<div id="i.-arithmetic-approach" class="section level3">
+<h3>I. Arithmetic approach:</h3>
 <ol style="list-style-type: decimal">
 <li>estimate monthly totals and associated standard error of the mean</li>
 <li>estimate annual totals and associated standard error by using the ‘quadrature’ method.</li>
 <li>estimate multi-year estimate of annual NPP, again using the ‘quadrature’ method.</li>
 </ol>
-<ul>
-<li>Attempting to follow method of Malhi et al., (2017) New Phytologist</li>
-</ul>
 </div>
-<div id="package-requirements" class="section level2">
-<h2>Package requirements</h2>
-<p>library(dplyr); library(lubridate); library(RcppRoll)</p>
-<div id="fine-litterfall" class="section level3">
-<h3>Fine Litterfall</h3>
-<p>This part of the NPP data has a large sample size collected between 2011/Feb through 2016/Feb. I think the arithmetic approach is sufficiently robust here.</p>
+<div id="ii.-distribution-bootstrap-approach" class="section level3">
+<h3>II. Distribution &amp; Bootstrap approach</h3>
 </div>
-<div id="woody-npp-from-census-data" class="section level3">
-<h3>Woody NPP from census data</h3>
+<div id="package-requirements" class="section level3">
+<h3>Package requirements</h3>
+<p>dplyr<br />
+lubridate<br />
+RcppRoll<br />
+kable<br />
+fitdistrplus<br />
+</p>
+</div>
+</div>
+<div id="npp-components" class="section level2">
+<h2>NPP Components:</h2>
+<div id="canopy-total-fine-litterfall-mgcha-1yr-1" class="section level3">
+<h3>Canopy Total Fine Litterfall <span class="math inline">\((Mg~C~ha^-1~yr^-1)\)</span></h3>
+<p>This part of the NPP data has a large sample size collected between 2011/Feb through 2016/Feb, so the more simpole arithmetic approach might be sufficient here. However the order of calculation makes a difference.<br />
+see: R/litterfall/sem_litterfall.R<br />
+</p>
+<p>calculation order:<br />
+(1) estimate annual sum of litterfall from each trap<br />
+(2) calculate mean annual litterfall and standard error of the mean<br />
+</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">plot_code</th>
+<th align="right">nobs</th>
+<th align="right">val_u</th>
+<th align="right">val_sd</th>
+<th align="right">val_sem</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">NXV-01</td>
+<td align="right">154</td>
+<td align="right">2.376703</td>
+<td align="right">1.006774</td>
+<td align="right">0.0811282</td>
+</tr>
+<tr class="even">
+<td align="left">NXV-02</td>
+<td align="right">154</td>
+<td align="right">4.778234</td>
+<td align="right">1.444391</td>
+<td align="right">0.1163924</td>
+</tr>
+</tbody>
+</table>
+<p>calculation order:<br />
+(1) calc year/month litterfall from each trap<br />
+(2) calc yearly sum of litterfall<br />
+(3) calc overall annual mean and sem of litterfall<br />
+</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">plot_code</th>
+<th align="right">nobs</th>
+<th align="right">val_u</th>
+<th align="right">val_sd</th>
+<th align="right">val_sem</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">NXV-01</td>
+<td align="right">6</td>
+<td align="right">1.956995</td>
+<td align="right">0.9362134</td>
+<td align="right">0.3822075</td>
+</tr>
+<tr class="even">
+<td align="left">NXV-02</td>
+<td align="right">6</td>
+<td align="right">3.935002</td>
+<td align="right">1.8262495</td>
+<td align="right">0.7455632</td>
+</tr>
+</tbody>
+</table>
+<p><br />
+<br />
+</p>
+<p>distribution approach using 1000 bootstraped iterations from the log-normal<br />
+</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">plot_code</th>
+<th align="right">median_est</th>
+<th align="right">CI_2.5</th>
+<th align="right">CI_97.5</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">NXV-01</td>
+<td align="right">2.182000</td>
+<td align="right">2.042683</td>
+<td align="right">2.317462</td>
+</tr>
+<tr class="even">
+<td align="left">NXV-02</td>
+<td align="right">4.579182</td>
+<td align="right">4.372251</td>
+<td align="right">4.795130</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="woody-npp-from-census-data-mgbiomassha-1yr-1" class="section level3">
+<h3>Woody NPP from census data <span class="math inline">\((Mg~Biomass~ha^-1~yr^-1)\)</span></h3>
 <p>Notes: This is an arithmetic calculation on adult trees greater than 100 mm diameter. I think the census data file I am using did not come from ForestPlots. It has many errors with d0 and species. I have tried to fix these in the code, but there are probably still errors so inspect carefully. s</p>
-<p>NXV-01: NPP Mg Biomass ha-1 yr-1 npp_u npp_sd nobs npp_sem 2.79 1.01 5 0.452</p>
-<p>NXV-02: NPP Mg Biomass ha-1 yr-1 npp_u npp_sd nobs npp_sem 2.77 1.16 4 0.581</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">plot_code</th>
+<th align="right">npp_u</th>
+<th align="right">npp_sd</th>
+<th align="right">nobs</th>
+<th align="right">npp_sem</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">NXV-01</td>
+<td align="right">2.791126</td>
+<td align="right">1.009742</td>
+<td align="right">5</td>
+<td align="right">0.4515705</td>
+</tr>
+<tr class="even">
+<td align="left">NXV-02</td>
+<td align="right">2.774994</td>
+<td align="right">1.162931</td>
+<td align="right">4</td>
+<td align="right">0.5814653</td>
+</tr>
+</tbody>
+</table>
+<p><br />
+<br />
+</p>
 </div>
-<div id="woody-npp-from-dendrometer-data" class="section level3">
-<h3>Woody NPP from dendrometer data</h3>
-<p>This is the approach I used in the Rifai et al 2018 Phil Trans Roy Soc B paper. There are some stong assumptions here: (1) NPP is estimated using dendrometer bands and one fixed census observation. The dendrometer bands are dynamic through time and are used to fit a model of woody NPP as a function of size and wood density for each measurement date. The model is then upscaled to the plot level with the fixed census observation.</p>
+<div id="woody-npp-from-dendrometer-data-mgcha-1yr-1" class="section level3">
+<h3>Woody NPP from dendrometer data <span class="math inline">\((Mg~C~ha^-1~yr^-1)\)</span></h3>
+<p>This is the approach I used in the Rifai et al 2018 Phil Trans Roy Soc B paper. There are some stong assumptions here:<br />
+(1) NPP is estimated using dendrometer bands and one fixed census observation. The dendrometer bands are dynamic through time and are used to fit a model of woody NPP as a function of size and wood density for each measurement date. The model is then upscaled to the plot level with the fixed census observation.</p>
+<p><br />
+<br />
+</p>
 </div>
-<div id="fine-root-npp" class="section level3">
-<h3>Fine root NPP</h3>
-<p>There is a very limited amount of non-normally distributed data here so I estimate this using an arthmetic approach, and through estimating a best fit parametric distribution. Because the sample size is quite small and has a skewed distribution, I suspect the distribution estimate is more robust.</p>
-<p>FOR COMPARISON —————————————————— From Marina’s manuscript ——————————————– Forest showed higher NPP for canopy (forest: 5.17 and savanna: 2.72 Mg C ha-1 year-1) and wood (forest: 1.35 and savanna: 0.51 Mg C ha-1 year-1) components, but savanna showed higher fine roots NPP (1.78 and 2.33 Mg C ha-1 year-1 for forest and savanna, respectively; Fig. 3a)</p>
+<div id="fine-root-npp-mgcha-1yr-1" class="section level3">
+<h3>Fine root NPP <span class="math inline">\((Mg~C~ha^-1~yr^-1)\)</span></h3>
+<p>There is a very limited amount of non-normally distributed data here so I estimate this using an arthmetic approach, but if I can find the individual ingrowth core data, I can better estimate this through bootstrapping the best fit parametric distribution. The root NPP data generally has a skewed distribution, so I suspect the distribution estimate is more robust.</p>
+<p>arithmetic approach, summing errors in quadrature:<br />
+</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">plot_code</th>
+<th align="right">nobs</th>
+<th align="right">root_u</th>
+<th align="right">root_sd</th>
+<th align="right">root_sem</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">NXV-01</td>
+<td align="right">7</td>
+<td align="right">2.221714</td>
+<td align="right">3.180091</td>
+<td align="right">0.5621659</td>
+</tr>
+<tr class="even">
+<td align="left">NXV-02</td>
+<td align="right">7</td>
+<td align="right">2.916000</td>
+<td align="right">6.110711</td>
+<td align="right">1.0802312</td>
+</tr>
+</tbody>
+</table>
+<p><br />
+<br />
+</p>
+</div>
+<div id="for-comparison" class="section level3">
+<h3>FOR COMPARISON ——————————————————</h3>
+<p>From Marina’s manuscript ——————————————–<br />
+canopy (forest: 5.17 and savanna: 2.72 Mg C ha-1 year-1) wood (forest: 1.35 and savanna: 0.51 Mg C ha-1 year-1) fine roots NPP (1.78 and 2.33 Mg C ha-1 year-1 for forest and savanna</p>
 </div>
 </div>
 </div>
