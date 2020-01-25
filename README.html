@@ -526,7 +526,7 @@ see: R/litterfall/sem_litterfall.R<br />
 </div>
 <div id="woody-npp-from-dendrometer-data-mgcha-1yr-1" class="section level3">
 <h3>Woody NPP from dendrometer data <span class="math inline">\((Mg~C~ha^-1~yr^-1)\)</span></h3>
-<p>This is the approach I used in the Rifai et al 2018 Phil Trans Roy Soc B paper. There are some stong assumptions here:<br />
+<p><strong>NOT WORKING YET</strong> This is the approach I used in the Rifai et al 2018 Phil Trans Roy Soc B paper. There are some stong assumptions here:<br />
 (1) NPP is estimated using dendrometer bands and one fixed census observation. The dendrometer bands are dynamic through time and are used to fit a model of woody NPP as a function of size and wood density for each measurement date. The model is then upscaled to the plot level with the fixed census observation.</p>
 <p><br />
 <br />
@@ -535,6 +535,35 @@ see: R/litterfall/sem_litterfall.R<br />
 <div id="fine-root-npp-mgcha-1yr-1" class="section level3">
 <h3>Fine root NPP <span class="math inline">\((Mg~C~ha^-1~yr^-1)\)</span></h3>
 <p>There is a very limited amount of non-normally distributed data here so I estimate this using an arthmetic approach, but if I can find the individual ingrowth core data, I can better estimate this through bootstrapping the best fit parametric distribution. The root NPP data generally has a skewed distribution, so I suspect the distribution estimate is more robust.</p>
+<p>arithmetic approach, summing errors in quadrature with an outlier removed from NXV-01:<br />
+</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">plot_code</th>
+<th align="right">nobs</th>
+<th align="right">root_u</th>
+<th align="right">root_sd</th>
+<th align="right">root_sem</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">NXV-01</td>
+<td align="right">7</td>
+<td align="right">2.221714</td>
+<td align="right">3.180091</td>
+<td align="right">0.5621659</td>
+</tr>
+<tr class="even">
+<td align="left">NXV-02</td>
+<td align="right">6</td>
+<td align="right">2.166000</td>
+<td align="right">4.134100</td>
+<td align="right">0.7308126</td>
+</tr>
+</tbody>
+</table>
 <p>arithmetic approach, summing errors in quadrature:<br />
 </p>
 <table>
