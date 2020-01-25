@@ -25,7 +25,7 @@ This part of the NPP data has a large sample size collected between
 might be sufficient here. However the order of calculation makes a difference.\
 see: R/litterfall/sem_litterfall.R \
 
-
+Better approach?
 calculation order:\
 (1) estimate annual sum of litterfall from each trap\
 (2) calculate mean annual litterfall and standard error of the mean\
@@ -49,6 +49,7 @@ calculation order:\
 \
 \
 
+Also good approach?
 distribution approach using 1000 bootstraped iterations from the log-normal \
 
 |plot_code | median_est|   CI_2.5|  CI_97.5|
